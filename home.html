@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=
+    , initial-scale=1.0">
+    <title>搶地遊戲</title>
+    <style>
+        /*
+        #B3AD74
+        #FFFAC4
+        #FF8BBB
+        #50A3B3
+        #80EBFF
+        */
+        .homepage_wrapper {
+            width: 500px;
+            margin: 50px auto 0;
+        }
+
+        .btn {
+            display: block;
+            width: 250px;
+            border: 3px solid rgb(93, 38, 115);
+            background-color: rgb(214, 182, 243);
+            border-radius: 50px;
+            margin: 20px auto 0;
+            text-align: center;
+        }
+
+        .btn:hover {
+            cursor: pointer;
+            background-color: rgb(93, 38, 115);
+        }
+
+        p {
+            width: 250px;
+            margin: 10px auto 0;
+        }
+
+        .wrapper {
+            display: none;
+        }
+
+        .start {
+            display: none;
+        }
+
+        td {
+            color: black;
+        }
+
+        table {
+            margin-left:auto; 
+            margin-right:auto;
+        }
+    </style>
+</head>
+
+<body onload="doInit()">
+
+    <div class="homepage_wrapper" id="homepage_wrapper" style="text-align:center">
+        <input type="button" value="開始遊戲" class="btn" id="btn" onclick="s.send('play###')">
+        <p>遊戲內人數 : <span id="number">0</span> </p>
+    </div>
+
+    <div class="wrapper" id="wrapper" style="text-align:center">
+        <span id="wait_for_start"></span>
+        <span class="countdown_for_start" id="countdown_for_start"></span>
+        <div class="start" id="start">
+            <span class="game_timer" id="game_timer"></span>
+            <table border="1" width="500px" height="500px" margin="auto">
+                <tr>
+                    <td class='cell' id='00' align='center' valign="middle">0</td>
+                    <td class='cell' id='10' align='center' valign="middle">0</td>
+                    <td class='cell' id='20' align='center' valign="middle">0</td>
+                    <td class='cell' id='30' align='center' valign="middle">0</td>
+                    <td class='cell' id='40' align='center' valign="middle">0</td>
+                </tr>
+                <tr>
+                    <td class='cell' id='01' align='center' valign="middle">0</td>
+                    <td class='cell' id='11' align='center' valign="middle">0</td>
+                    <td class='cell' id='21' align='center' valign="middle">0</td>
+                    <td class='cell' id='31' align='center' valign="middle">0</td>
+                    <td class='cell' id='41' align='center' valign="middle">0</td>
+                </tr>
+                <tr>
+                    <td class='cell' id='02' align='center' valign="middle">0</td>
+                    <td class='cell' id='12' align='center' valign="middle">0</td>
+                    <td class='cell' id='22' align='center' valign="middle">0</td>
+                    <td class='cell' id='32' align='center' valign="middle">0</td>
+                    <td class='cell' id='42' align='center' valign="middle">0</td>
+                </tr>
+                <tr>
+                    <td class='cell' id='03' align='center' valign="middle">0</td>
+                    <td class='cell' id='13' align='center' valign="middle">0</td>
+                    <td class='cell' id='23' align='center' valign="middle">0</td>
+                    <td class='cell' id='33' align='center' valign="middle">0</td>
+                    <td class='cell' id='43' align='center' valign="middle">0</td>
+                </tr>
+                <tr>
+                    <td class='cell' id='04' align='center' valign="middle">0</td>
+                    <td class='cell' id='14' align='center' valign="middle">0</td>
+                    <td class='cell' id='24' align='center' valign="middle">0</td>
+                    <td class='cell' id='34' align='center' valign="middle">0</td>
+                    <td class='cell' id='44' align='center' valign="middle">0</td>
+                </tr>
+            </table>
+        </div>
+        <p id="win"></p>
+    </div>
+
+    <script>
+        let homepage_wrapper = document.getElementById("homepage_wrapper")
+        let number = document.getElementById("number")
+        let btn = document.getElementById("btn")
+
+        let wrapper = document.getElementById("wrapper")
+        let wait_for_start = document.getElementById("wait_for_start")
+        let countdown_for_start = document.getElementById("countdown_for_start")
+        let game_timer = document.getElementById("game_timer")
+        let start = document.getElementById("start")
+        let cells = document.querySelectorAll(".cell")
+        let win = document.getElementById("win")
+        let flag = 0
+        function doInit() {
+            function log_msg(msg) {
+                console.log(msg);
+            }
+            try {
+                var host = "ws://localhost:4545/"; // 設定socker server的ip:port
+                // if(window.location.hostname) {
+                //     host = "ws://" + window.location.hostname + ":4545/";
+                // }
+
+                s = new WebSocket(host); // 建立socket元件
+                // 事件設定
+                s.onopen = function (e) { log_msg("connecting..."); s.send("number###") };
+                s.onclose = function (e) { log_msg("connection closed."); };
+                s.onerror = function (e) { log_msg("connection error."); };
+
+
+                // 當server送訊息來時
+                s.onmessage = function (e) {
+                    number.innerHTML = e.data
+                    console.log("onmessage:")
+                    console.log(e.data)
+                }
+            } catch (ex) {
+                log_msg("connection exception:" + ex);
+            }
+        }
+        // 按了按鈕之後
+        document.getElementById("btn").addEventListener("click", function () {
+            s.onmessage = function (e) {
+                let status_msg = e.data.split("###")
+                status = status_msg[3]
+                if (status === "occupied") {
+                    land = e.data.split('###');
+                    let position = land[1] + land[0]
+                    if (land[2] > 0) { // 玩家1(palyer_blue) ++ 
+                        document.getElementById(position).style.backgroundColor = "#80EBFF"
+                        document.getElementById(position).innerText = land[2]
+                    } else if (land[2] < 0) { // 玩家2(palyer_red) ++ 
+                        document.getElementById(position).style.backgroundColor = "#FF8BBB"
+                        document.getElementById(position).innerText = -land[2]
+                    } else {
+                        document.getElementById(position).style.backgroundColor = "white"
+                        document.getElementById(position).innerText = "0"
+                    }
+                    console.log(position + " " + land[2])
+                } else if (status === "is winner") {
+                    let match_results = status_msg[2]
+                    if (match_results === "palyer_blue") {
+                        win.innerHTML = "藍色方塊玩家獲勝"
+                    } else if (match_results === "palyer_red") {
+                        win.innerHTML = "紅色方塊玩家獲勝"
+                    } else {
+                        win.innerHTML = "平手"
+                    }
+                    let timer = 3
+                    let fight = setInterval(function () {
+                        down--
+                        if (timer <= 0) {
+                            clearInterval(fight)
+                            s.send("out")
+                            location.reload()
+                        }
+                    }, 1000)
+                } else {
+                    if (e.data != "已額滿") {
+                        m = e.data.split("###")
+                        if (m[1] === "is preparing") {
+                            // console.log(m[1])
+                            number.innerHTML = m[0]
+                        } else {
+                            number.innerHTML = e.data
+                            homepage_wrapper.style.display = "none"
+                            wrapper.style.display = "block"
+                            wait_for_start.innerHTML = "等待另一位玩家加入..."
+                            // 人數 number == 2
+                            if (e.data == 2) {
+                                // s.send("whoareyou###")
+                                // msg = e.data.split("###")
+                                // you = msg[0]
+                                let timer = 5
+                                wait_for_start.innerHTML = "玩家到齊，"
+                                let interval = setInterval(function () {
+                                    timer--
+                                    countdown_for_start.innerText = "遊戲將在 " + timer + " 秒後開始"
+                                    if (timer <= 0) {
+                                        clearInterval(interval)
+                                        countdown_for_start.style.display = "none"
+                                        // s.send("whoareyou###")
+                                        // msg = e.data.split("###")
+                                        // if (you == 'blue') {
+                                        //     wait_for_start.innerHTML = "遊戲開始！ 你是藍色！"
+                                        // } else {
+                                        //     wait_for_start.innerHTML = "遊戲開始！ 你是紅色！"
+                                        // }
+                                        wait_for_start.innerHTML = "遊戲開始！"
+                                        start.style.display = "block"
+                                        let timer = 15 // 遊戲時間(秒數)
+                                        let fight = setInterval(function () {
+                                            timer--
+                                            game_timer.innerText = "剩餘時間 : " + parseInt(timer/60) + "分" + timer%60 + "秒"
+                                            if (timer <= 0) {
+                                                clearInterval(fight)
+                                                wait_for_start.innerHTML = "遊戲結束"
+                                                flag = 1
+                                                s.send("stop###")
+                                            }
+                                        }, 1000)
+                                    }
+                                }, 1000)
+                            }
+                        }
+
+                    } else {
+                        alert("遊戲已經開始！請等下一輪")
+                        number.innerHTML = e.data
+                        console.log("click down:")
+                        console.log(e.data)
+                    }
+                }
+            }
+        })
+
+        cells.forEach(function (el) {
+            el.onclick = function () {
+                id = this.id;
+                console.log(id)
+                if (flag == 0) {
+                    s.send("land###" + id)
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
