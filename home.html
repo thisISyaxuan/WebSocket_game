@@ -130,7 +130,8 @@
                 console.log(msg);
             }
             try {
-                var host = "ws://localhost:4545/"; // 設定socker server的ip:port
+                var host = "ws://10.99.1.149:4545/"; // 設定socker server的ip:port
+                // 10.99.1.149
                 // if(window.location.hostname) {
                 //     host = "ws://" + window.location.hostname + ":4545/";
                 // }
@@ -182,7 +183,7 @@
                     }
                     let timer = 3
                     let fight = setInterval(function () {
-                        down--
+                        timer--
                         if (timer <= 0) {
                             clearInterval(fight)
                             s.send("out")
@@ -222,7 +223,7 @@
                                         // }
                                         wait_for_start.innerHTML = "遊戲開始！"
                                         start.style.display = "block"
-                                        let timer = 15 // 遊戲時間(秒數)
+                                        let timer = 5 // 遊戲時間(秒數)
                                         let fight = setInterval(function () {
                                             timer--
                                             game_timer.innerText = "剩餘時間 : " + parseInt(timer/60) + "分" + timer%60 + "秒"
